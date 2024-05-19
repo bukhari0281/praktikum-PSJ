@@ -4,19 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
     <ul id="messages"></ul>
     <form id="form">
-        <input id="input" type="text" autocomplete="off"><button>Kirim</button>
-        <script src="/socket.io/socket.io.js"></script>
+        <input id="input" type="text" autocomplete="off">
+        <button>Kirim</button>
     </form>
+    <button id="toggle-btn">Disconnect</button>
     <script>
-        const socket = io()
+        const socket = io({
+            auth: {
+                serverOffset: 0
+            }
+        })
 
         const form = document.getElementById('form')
         const input = document.getElementById('input')
         const messages = document.getElementById('messages')
+        const toggleBtn = document.getElementById('toggle-btn')
 
         form.addEventListener('submit', (e) => {
             e.preventDefault()
@@ -26,12 +33,24 @@
             }
         })
 
-        socket.on('chat message', (msg) => {
+        socket.on('chat message', (msg, serverOffset) => {
             const item = document.createElement('li')
             item.textContent = msg
             messages.appendChild(item)
             window.scrollTo(0, document.body.scrollHeight)
+            socket.auth.serverOffset = serverOffset 
         })
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault()
+            if (socket.connected) {
+                toggleBtn.innerText = 'Connect'
+                socket.disconnect()
+            } else {
+                toggleBtn.innerText = 'Disconnect'
+                socket.connect()
+            } 
+        })  
     </script>
 </body>
 </html>
